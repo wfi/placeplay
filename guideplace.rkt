@@ -1,8 +1,14 @@
 #lang racket
 
-
 (provide main)
  
+#|
+Experimenting with places starting from the Racket Guide.
+
+Want to create multiple (two) place and have them interact with each other.
+|#
+
+
 (define (any-double? l)
   (for/or ([i (in-list l)])
     (for/or ([i2 (in-list l)])
