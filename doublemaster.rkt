@@ -42,8 +42,8 @@
                                         'doubler-server))
       ;(tuple-server-hello c)
       ;(tuple-server-hello d)
-      (displayln (doubler-server-double c 3))
-      (displayln (doubler-server-double d 4))
+      (displayln (doubler-server-slow-double c 3))
+      (displayln (doubler-server-slow-double d 4))
       )
 
     (after-seconds 8

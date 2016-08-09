@@ -9,7 +9,7 @@
     (* n 2))
   
   (define-rpc (slow-double n)
-    (sleep 1)
+    (sleep 4)
     (* n 2))
 
   #|
