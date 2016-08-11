@@ -46,9 +46,9 @@
       (displayln (doubler-server-slow-double d 4))
       )
 
-    (after-seconds 8
+    (after-seconds 18
       (node-send-exit remote-node))
-    (after-seconds 10
+    (after-seconds 20
       (exit 0))))
 
 
