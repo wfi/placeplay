@@ -10,9 +10,12 @@
 
 (provide main)
 
+(define (callit conn n)
+  (doubler-server-double conn n))
+
 (define (main)
   (define remote-node (spawn-remote-racket-node 
-                        "dweller" 
+                        "landing" 
                         #:listen-port 6344))
   (define doubler-place (supervise-place-at 
                          remote-node 
@@ -42,8 +45,10 @@
                                         'doubler-server))
       ;(tuple-server-hello c)
       ;(tuple-server-hello d)
-      (displayln (doubler-server-slow-double c 3))
-      (displayln (doubler-server-slow-double d 4))
+      ;(displayln (doubler-server-slow-double c 3))
+      (displayln (callit c 3))
+      ;(displayln (doubler-server-slow-double d 4))
+      (displayln (callit d 4))
       )
 
     (after-seconds 18

@@ -100,21 +100,21 @@ define ranges for places
    (map place-wait pls)))|#
 
 (define (main)
-  (define gracer-node (spawn-remote-racket-node "gracer" #:listen-port DPT-PORT))
-  (define gwplc (supervise-place-at gracer-node #:named 'place-worker plpath 'make-place-worker))
+  ;(define gracer-node (spawn-remote-racket-node "gracer" #:listen-port DPT-PORT))
+  ;(define gwplc (supervise-place-at gracer-node #:named 'place-worker plpath 'make-place-worker))
 
   (define landing-node (spawn-remote-racket-node "landing" #:listen-port DPT-PORT))
   (define lwplc (supervise-place-at landing-node #:named 'place-worker plpath 'make-place-worker))
   
-  (message-router gracer-node
+  (message-router landing-node
                   (after-seconds 1
                                  ;(for ([
-                                 (define cn (connect-to-named-place gracer-node 'place-worker))
-                                 (displayln (place-worker-hello cn))
+                                 (define cn (connect-to-named-place landing-node 'place-worker))
+                                 ;(displayln (place-worker-hello cn))
                                  (displayln (place-worker-setid cn 3))
                                  (displayln (place-worker-echo cn 0))
                                  (displayln (place-worker-incr cn 0)))
                   (after-seconds 20
-                                 (node-send-exit gracer-node))
+                                 (node-send-exit landing-node))
                   (after-seconds 22
                                  (exit 0))))

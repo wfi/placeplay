@@ -21,9 +21,10 @@
     (format "worker ~a: echoes ~a~%" whoiam n))
   (define-rpc (incr n)
     (format "worker ~a: incrs ~a~%" whoiam (add1 n)))
-  (define-cast (hello)
+  #|(define-cast (hello)
     (printf "hello from place-worker's define-cast ~a\n" whoiam)
-    (flush-output)))
+    (flush-output))|#
+  )
 
 ;(provide place-main)
 #|
