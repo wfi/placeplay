@@ -11,42 +11,64 @@
 
 (provide main)
 
-(define MAX-FAKE-LEVEL 25)
+(define MAX-FAKE-LEVEL 15)
 (define DIY-LEVEL 5)
+(define HOSTS  (list "landing" "gracer"))
 
 (define (callit conn n)
   (fakeSTPworker-server-async-slow-double conn n))
 
-(define (waitforit conn)
-  (if (fakeSTPworker-server-ready? conn)
-      (fakeSTPworker-server-get-last conn)
-      (begin (sleep 0.1)
-             (waitforit conn))))
+(define waitforit
+  (let ([waittime 0.01])
+    (lambda (conn)
+      (cond [(fakeSTPworker-server-ready? conn)
+             (set! waittime 0.01)
+             (fakeSTPworker-server-get-last conn)]
+            [else (sleep waittime)
+                  (set! waittime (* waittime 2))
+                  (waitforit conn)]))))
 
 (define (do-some-stuff conns n)
   (cond [(> n MAX-FAKE-LEVEL) empty]
         [(< n DIY-LEVEL) (cons (* n 2) (do-some-stuff conns (add1 n)))]
-        [else (cons (begin (for ([c conns])
-                             (callit c n))
+        [else (cons (begin (for ([c conns]
+                                 [inc (in-range 0 1 (/ 1 (length HOSTS)))])
+                             (callit c (+ n inc)))
                            (for/list ([c conns])
                              (waitforit c)))
                     (do-some-stuff conns (add1 n)))]))
 
 (define (main)
-  #|(define remote-node (spawn-remote-racket-node 
+  (define nodes (for/list ([host HOSTS])
+                  (spawn-remote-racket-node host #:listen-port 6344)))
+  (define nodeplaces (for/list ([node nodes])
+                       (supervise-place-at node
+                                           #:named 'fakeSTPworker-server
+                                           fakeSTPworker-path
+                                           'make-fakeSTPworker-server)))
+  (define conns (for/list ([node nodes])
+                  (connect-to-named-place node
+                                          'fakeSTPworker-server)))
+  (define the-results (do-some-stuff conns 0))
+  (for ([nd nodes])
+    (node-send-exit nd))
+  the-results
+                                          
+  #|
+  (define remote-node (spawn-remote-racket-node 
                         "landing" 
-                        #:listen-port 6344))|#
+                        #:listen-port 6344))
   (define landing-node (spawn-remote-racket-node 
                         "landing" 
                         #:listen-port 6344))
   (define gracer-node (spawn-remote-racket-node 
                         "gracer" 
                         #:listen-port 6344))
-  #|(define fakeSTPworker-place (supervise-place-at 
+  (define fakeSTPworker-place (supervise-place-at 
                                remote-node 
                                #:named 'fakeSTPworker-server 
                                fakeSTPworker-path 
-                               'make-fakeSTPworker-server))|#
+                               'make-fakeSTPworker-server))
   (define fakeSTPworker-place (supervise-place-at 
                                landing-node 
                                #:named 'fakeSTPworker-server 
@@ -57,12 +79,14 @@
                                #:named 'fakeSTPworker-server 
                                fakeSTPworker-path 
                                'make-fakeSTPworker-server))
-
+  
   (define c (connect-to-named-place landing-node 
                                     'fakeSTPworker-server))
   (define d (connect-to-named-place gracer-node 
                                     'fakeSTPworker-server))
   (do-some-stuff (list c d) 0)
+  |#
+  
 
   #|
   (define bank-place  (supervise-place-at 
