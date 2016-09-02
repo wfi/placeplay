@@ -1,3 +1,28 @@
+#lang racket
+
+(provide main
+         slow-double
+         double)
+
+(define (base-double n)
+  (* n 2))
+
+(define (double pch)
+  (place-channel-put pch (base-double (place-channel-get pch))))
+
+(define (slow-double pch)
+  (sleep 4)
+  (place-channel-put pch (base-double (place-channel-get pch))))
+
+(define (main pch)
+  (case (place-channel-get pch)
+    [(double) (double pch) (main pch)]
+    [(slow) (slow-double pch) (main pch)]
+    [(quit) 'done]
+    [else 'unknown-message]))
+  
+
+#|
 #lang racket/base
 (require ;;racket/match
          racket/place/define-remote-server)
@@ -12,10 +37,11 @@
     (sleep 4)
     (* n 2))
 
-  #|
+  
   (define-cast (hello)
     (printf "Hello from define-cast\n")
     (flush-output))
-  |#
+  
 
   )
+|#
