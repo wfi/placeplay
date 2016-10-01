@@ -4,18 +4,21 @@
          slow-double
          double)
 
+(define myid -1)
+
 (define (base-double n)
   (* n 2))
 
 (define (double pch)
-  (place-channel-put pch (base-double (place-channel-get pch))))
+  (place-channel-put pch (cons myid (base-double (place-channel-get pch)))))
 
 (define (slow-double pch)
   (sleep 4)
-  (place-channel-put pch (base-double (place-channel-get pch))))
+  (place-channel-put pch (cons myid (base-double (place-channel-get pch)))))
 
 (define (main pch)
   (case (place-channel-get pch)
+    [(init) (set! myid (place-channel-get pch)) (main pch)]
     [(double) (double pch) (main pch)]
     [(slow) (slow-double pch) (main pch)]
     [(quit) 'done]

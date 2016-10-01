@@ -13,7 +13,7 @@
 
 (define MAX-FAKE-LEVEL 15)
 (define DIY-LEVEL 5)
-(define HOSTS  (list "landing" "gracer" "landing" "gracer"))
+(define HOSTS  (list "landing" "gracer" "localhost"))
 (define PLACES-PER-NODE 2)
 (define TOTAL-PLACES (* (length HOSTS) PLACES-PER-NODE))
 
@@ -48,10 +48,10 @@
                                            #:named 'fakeSTPworker-server
                                            fakeSTPworker-path
                                            'make-fakeSTPworker-server)))
-  (define conns (for*/list ([node nodes]
+  (define conns (for/list ([n nodes]
                             ;[place-num PLACES-PER-NODE]
                             )
-                  (connect-to-named-place node
+                  (connect-to-named-place n
                                           'fakeSTPworker-server)))
   (define the-results (do-some-stuff conns 0))
   (for ([nd nodes])
