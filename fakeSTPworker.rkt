@@ -5,7 +5,7 @@
 (define (base-double n)
   (* n 2))
 
-(define-named-remote-server fakeSTPworker-server
+(define-remote-server fakeSTPworker-server
   (define-state last-result 0)
   (define-state ready #f)
 

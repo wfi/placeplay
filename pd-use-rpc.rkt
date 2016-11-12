@@ -6,23 +6,22 @@
          racket/runtime-path
          )
 
-(require "superfluous.rkt")
+(require "rpc-doubler.rkt"
+         "superfluous.rkt")
 
 (define HOSTS ;(list "dweller" "landing" "gracer")
   (list "landing")
   )
 (define NUM-PLACES 2)
-(define-runtime-path doubler-path "doubler.rkt")
+(define-runtime-path doubler-path "rpc-doubler.rkt")
 (define *worker-nodes* null)
 (define *workers* null)
 
 ;(provide main)
 
 (define (init-worker i node)
-  (let ([awp (supervise-place-at node doubler-path 'main)])
-    (place-channel-put awp 'init)
-    (place-channel-put awp i)
-    (printf "Initialized worker ~a purporting to be ~a~%" i (place-channel-get awp))
+  (let ([awp (supervise-place-at node doubler-path 'make-rpc-doubler)])
+    (printf "Initialized worker ~a purporting to be ~a~%" i (rpc-doubler-init awp i))
     awp))
 
 
@@ -61,18 +60,14 @@
 (module+ main
   (init-workers!)
   (time
-   (for ([i (in-range (length *workers*))]
-         [p *workers*])
-     (place-channel-put p 'slow)
-     (place-channel-put p i)
+   (for/list ([i (in-range (length *workers*))]
+              [p *workers*])
+     (rpc-doubler-slow-double p i)
      )
-   (printf "~a\n"
-           (for/list ([p *workers*])
-             (place-channel-get p)))
    )
   
-  (for ([p *workers*]) (place-channel-put p 'quit))
-  (map place-wait *workers*)
+  ;(for ([p *workers*]) (place-channel-put p 'quit))
+  ;(map place-wait *workers*)
 
   (for ([n *worker-nodes*]) (node-send-exit n))
 

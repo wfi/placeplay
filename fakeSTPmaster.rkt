@@ -13,8 +13,9 @@
 
 (define MAX-FAKE-LEVEL 15)
 (define DIY-LEVEL 5)
-(define HOSTS  (list "landing" "gracer" "localhost"))
-(define PLACES-PER-NODE 2)
+(define HOSTS  (list "landing" ;"gracer" "localhost"
+                     ))
+(define PLACES-PER-NODE 4)
 (define TOTAL-PLACES (* (length HOSTS) PLACES-PER-NODE))
 
 (define (callit conn n)
@@ -43,17 +44,28 @@
 (define (main)
   (define nodes (for/list ([host HOSTS])
                   (spawn-remote-racket-node host #:listen-port 6344)))
-  (define nodeplaces (for/list ([node nodes])
+  (define nodeplaces (for*/list ([node nodes]
+                                 [name-num PLACES-PER-NODE])
                        (supervise-place-at node
-                                           #:named 'fakeSTPworker-server
+                                           #|
+                                           #:named (string->symbol
+                                                    (string-append "fakeSTPworker-server"
+                                                                   (number->string name-num)))
+|#
                                            fakeSTPworker-path
                                            'make-fakeSTPworker-server)))
-  (define conns (for/list ([n nodes]
-                            ;[place-num PLACES-PER-NODE]
+  (printf "nodeplaces are connections?: ~a~%"
+          (for/list ([np nodeplaces]) (*channel? np)))
+  #|
+  (define conns (for*/list ([n nodes]
+                            [place-num PLACES-PER-NODE]
                             )
                   (connect-to-named-place n
-                                          'fakeSTPworker-server)))
-  (define the-results (do-some-stuff conns 0))
+                                          (string->symbol
+                                           (string-append "fakeSTPworker-server"
+                                                          (number->string place-num))))))
+  |#
+  (define the-results (do-some-stuff nodeplaces 0))
   (for ([nd nodes])
     (node-send-exit nd))
   the-results
